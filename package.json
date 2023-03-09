@@ -1,0 +1,11 @@
+{
+  "name": "pavex-text-fragment",
+  "version": "1.0.0",
+  "description": "Text fragment utils",
+  "scripts": {
+  },
+  "author": "Pavex <pavex@ines.cz>",
+  "license": "ISC",
+  "dependencies": {
+  }
+}
