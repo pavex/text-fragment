@@ -7,7 +7,9 @@ https://wicg.github.io/scroll-to-text-fragment/
 
 ## source-code
 
-- document.d.ts
+- document.d.ts - Inteface for native function of Google Chrome
+- FragmentDirective.ts - Native createSelectorDirective to gnerate textFragment and convert into TextDirectiveOptions
+
 
 ## Demo
 
