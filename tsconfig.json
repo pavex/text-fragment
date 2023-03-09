@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "target": "es2016",
+    "module": "System",
+    "rootDir": "src",
+    "baseUrl": ".",
+    "paths": {
+      "/*": ["./src/*"]
+    },
+    "strict": true,
+    "skipLibCheck": true
+  }
+}
