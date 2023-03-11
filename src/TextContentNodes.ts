@@ -1,13 +1,15 @@
 /**
- * @description Text content node collection service
+ * @description Text content node index service for analyze document nodes
  * @author Pavel Machacek <pavex@ines.cz> 
  */
 
 
 export interface ITextContentNode {
+    node: Node
     startOffset: number
     endOffset: number
-    node: Node
+    tagName: string
+    order: number
 }
 
 
@@ -21,6 +23,7 @@ export interface IPointer {
 
 
 
+
 export class TextContentNodes {
 
     private textContentNodes: ITextContentNode[] = []
@@ -29,69 +32,63 @@ export class TextContentNodes {
 
 
 
-    constructor(initialNode?: Node) {
-        if (initialNode) {
-            this.putNode(initialNode)
+    constructor(rootNode?: Node) {
+        if (rootNode) {
+            this.analyze(rootNode)
         }
     }
 
 
 
 
-    putNode(initialNode: Node): void {
-
-// Get fist valid text node from node/element
-        const firstNode = (node: Node): Node => {
-            let firstChild: Node = node
-            while (firstChild && firstChild.nodeType != 3 && firstChild.firstChild) {
-                firstChild = firstChild.firstChild
-            }
-            return firstChild
-        }
-
-// Get next "sibling" node from specific node
-        const nextNode = (node: Node): Node|null => {
-            if (node.nextSibling) {
-                return firstNode(node.nextSibling)
-            }
-            if (node.parentNode) {
-                return node.parentNode
-            }
-            return null
-        }
-
+    analyze(rootNode: Node): void {
 /**
  * Element visiblity check
  * @see: https://stackoverflow.com/questions/19669786/check-if-element-is-visible-in-dom
  */
-        const isVisible = (element: HTMLElement): boolean => {
+        const isVisibleElement = (element: HTMLElement): boolean => {
             return !!(element.offsetWidth || element.offsetHeight || element.getClientRects().length)
         }
-//
-        const isValidNode = (node: Node): boolean => {
-            return node.nodeType == node.TEXT_NODE
-                && node.nodeType !== node.COMMENT_NODE
-                && !!node.parentElement
-                && node.parentElement.tagName !== 'STYLE'
-                && node.parentElement.tagName !== 'SCRIPT'
-                && isVisible(node.parentElement)
+
+        const isAllowedNodeType = (nodeType: number): boolean => {
+            return nodeType === Node.TEXT_NODE && nodeType !== Node.COMMENT_NODE
+        }
+
+        const isAllowedTagName = (tagName: string): boolean => {
+            return ['SCRIPT', 'STYLE'].indexOf(tagName) === -1
         }
 //
 //
-        let node: Node|null = firstNode(initialNode)
+        const treeWalker = document.createTreeWalker(rootNode, NodeFilter.SHOW_TEXT)
+        let node: Node|null = treeWalker.firstChild()
         let offset: number = 0
+        let tags: {[key: string]: number} = {}
+//
+// Store tagName count
+        const getOrder = (tagName: string): number => {
+            !tags[tagName] ? tags[tagName] = 0 : undefined
+            return tags[tagName]++
+        }
 //
         while (node) {
-            if (node.textContent && isValidNode(node)) { 
+            if (node.textContent && !!node.parentElement
+                && isAllowedNodeType(node.nodeType)
+                && isAllowedTagName(node.parentElement.tagName)
+                && isVisibleElement(node.parentElement)) {
+// Calculate start and end offset of text
                 const textContent = node.textContent
                 const len = textContent.length
                 const startOffset = offset
                 const endOffset = startOffset + len
-                this.textContentNodes.push({startOffset, endOffset, node})
+// Obraint tagName and tag name order
+                let tagName =  node.parentElement.tagName
+                let order = getOrder(tagName)
+//
+                this.textContentNodes.push({node, startOffset, endOffset, tagName, order})
                 this.textContent += textContent
                 offset = endOffset
             }
-            node = nextNode(node)
+            node = treeWalker.nextNode()
         }
     }
 
@@ -125,7 +122,21 @@ export class TextContentNodes {
 
 
 
-    getTextContentNode(position: number): ITextContentNode|null {
+    getTextContentNodes(): ITextContentNode[] {
+        return this.textContentNodes
+    }
+
+
+
+
+    getTextContentNodeByNode(node: Node): ITextContentNode|null {
+        return this.textContentNodes.find(textContentNode => textContentNode.node === node) || null
+    }
+
+
+
+
+    getTextContentNodeByPosition(position: number): ITextContentNode|null {
         for (let i: number = 0; i < this.textContentNodes.length; i++) {
             let textContentPointer: ITextContentNode = this.textContentNodes[i]
             if (textContentPointer.startOffset <= position && position < textContentPointer.endOffset) {
@@ -138,8 +149,15 @@ export class TextContentNodes {
 
 
 
+    getTextContentNode(input: Node|number): ITextContentNode|null {
+        return input instanceof Node ? this.getTextContentNodeByNode(input) : this.getTextContentNodeByPosition(input)
+    }
+
+
+
+
     getPointer(position: number): IPointer|null {
-        const textContentNode = this.getTextContentNode(position)
+        const textContentNode = this.getTextContentNodeByPosition(position)
         if (textContentNode) {
             return {
                 offset: position - textContentNode.startOffset,
