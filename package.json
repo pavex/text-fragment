@@ -3,9 +3,11 @@
   "version": "1.0.0",
   "description": "Text fragment utils",
   "scripts": {
+    "start": "esbuild demo/index.ts --bundle --outdir=demo/ --servedir=demo/ --sourcemap"
   },
   "author": "Pavex <pavex@ines.cz>",
   "license": "ISC",
   "dependencies": {
+    "esbuild": "^0.17.12"
   }
 }
