@@ -58,7 +58,10 @@ The number then tells how many occurrences the text for the given element is in 
 ### Examples of fragments
 
 `#:~:txt2=Registration%20and%20login{H2}`
+
 `#:~:txt2=Reabr%20is{STRONG},fullest%2e`
+
+`#:~:txt2=Registration{H2},and%20login{1}`
 
 
 ## Real usage
