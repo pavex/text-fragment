@@ -44,7 +44,7 @@ The proposed system is primarily intended for HTML documents, but it would be po
 
 ### Solutions
 
-`#:~:txt2=startText[{Element, order}][,endText[{Element, order}]]`
+`#:~:txt2=startText[{TagName, order}][,endText[{TagName, order}]]`
 
 The structure of the fragment consists only of startText and endText. endText is optional if startText includes the entire highlighted text.
 
@@ -53,6 +53,12 @@ Both the startText and endText strings can be followed by a specification of the
 The information contains in which element of the document the beginning of the selected text is located.
 
 The number then tells how many occurrences the text for the given element is in question.
+
+#### Optimization
+
+- If tag name is `P`, character not shown in result fragment
+- If order is 1, number not shown in result fragment
+- If tag name of endText is a same as tag name of startText, tag name in end text fragment not shown  
 
 
 ### Examples of fragments
